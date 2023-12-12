@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restaurant App</title>
+  <style>
+   body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    select, button {
+      margin-top: 10px;
+    }
+
+    .table {
+      margin-top: 20px;
+    }
+
+    .bill-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .delete-btn {
+      cursor: pointer;
+      color: red;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Restaurant App</h1>
+
+  <label for="priceSelect">Choose Price:</label>
+  <input type="number" id="priceSelect">
+
+  <label for="dishSelect">Choose Dish:</label>
+  <input type="text" id="dishSelect">
+
+  <label for="tableSelect">Choose Table:</label>
+  <select id="tableSelect">
+    <option value="table1">Table 1</option>
+    <option value="table2">Table 2</option>
+    <option value="table3">Table 3</option>
+  </select>
+  <button onclick="addBill()">Add Bill</button>
+
+  <div class="table">
+    <h2>table1</h2>
+    <ul id="table1"></ul>
+    <h2>table2</h2>
+    <ul id="table2"></ul>
+    <h2>table3</h2>
+    <ul id="table3"></ul>
+  </div>
+
+  <div id="bill"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.24.0/axios.min.js"></script>
+  <script>
+    
+ async function fetchData() {
+  try {
+    const response = await axios.get('https://crudcrud.com/api/222e92c1bd7c430798f3d851c5c3a72a/appointment');
+    const data = response.data;
+
+    // Populate the UI with existing data
+    data.forEach(item => {
+      const { table, dish, price, _id } = item; // Note: _id is the unique identifier from CrudCrud
+
+      const billText = `Bill for ${table}: ${dish} - ${price}`;
+
+      const newBillItem = document.createElement('li');
+      newBillItem.className = 'bill-item';
+      newBillItem.setAttribute('data-id', _id); // Set the data-id attribute
+      newBillItem.innerHTML = `<li data-id="${_id}">
+        <span>${billText}</span>
+        <button onclick="deleteBill(this, '${table}', '${_id}')">Delete</button>
+      </li>`;
+
+      document.getElementById(table).appendChild(newBillItem);
+    });
+  } catch (error) {
+    console.error(error);
+  }
+}
+    fetchData();
+
+    function addBill() {
+      var price = document.getElementById('priceSelect').value;
+      var dish = document.getElementById('dishSelect').value;
+      var table = document.getElementById('tableSelect').value;
+
+      var billText = `Bill for ${table}: ${dish} - ${price}`;
+
+      var newBillItem = document.createElement('li');
+      newBillItem.className = 'bill-item';
+      newBillItem.innerHTML = `<li>
+        <span>${billText}</span>
+        <button onclick="deleteBill(this, '${table}')">Delete</button>
+      </li> `;
+
+      document.getElementById(table).appendChild(newBillItem);
+
+      // Send data to the server
+      axios.post('https://crudcrud.com/api/222e92c1bd7c430798f3d851c5c3a72a/appointment', { table, dish, price })
+        .then(response => console.log(response))
+        .catch(error => console.error(error));
+    }
+
+    
+        function deleteBill(deleteBtn, table, billId) {
+            // Traverse up to the parent li element and remove it
+            var billItem = deleteBtn.closest('.bill-item');
+            billItem.remove();
+
+            // Send a delete request to the server
+            axios.delete(`https://crudcrud.com/api/222e92c1bd7c430798f3d851c5c3a72a/appointment/${billId}`)
+                .then(response => console.log(response))
+                .catch(error => console.error(error));
+        } 
+  </script>
+
+</body>
+</html>
